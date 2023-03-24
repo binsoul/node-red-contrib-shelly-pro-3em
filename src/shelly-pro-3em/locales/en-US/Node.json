@@ -1,0 +1,12 @@
+{
+    "binsoul-shelly-pro-3em": {
+        "label": {
+            "output": "Output",
+            "deviceIp": "Device IP"
+        },
+        "help": {
+            "output": "",
+            "deviceIp": ""
+        }
+    }
+}

@@ -1,0 +1,44 @@
+<script data-template-name="binsoul-shelly-pro-3em" type="text/html">
+    <div class="binsoul-shelly-pro-3em-wrapper">
+        <fieldset>
+            <div class="form-row" data-i18n="[title]binsoul-shelly-pro-3em.help.deviceIp">
+                <label for="node-input-deviceIp" class="binsoul-shelly-pro-3em-label">
+                    <span data-i18n="binsoul-shelly-pro-3em.label.deviceIp"></span>
+                </label>
+                <input type="text" id="node-input-deviceIp" class="binsoul-shelly-pro-3em-input" />
+            </div>
+            <div class="form-row" data-i18n="[title]binsoul-shelly-pro-3em.help.output">
+                <label for="node-input-outputProperty" class="binsoul-shelly-pro-3em-label">
+                    <span data-i18n="binsoul-shelly-pro-3em.label.output"></span>
+                </label>
+                <input type="hidden" id="node-input-outputTarget" />
+                <input type="text" id="node-input-outputProperty" class="binsoul-shelly-pro-3em-input" />
+            </div>
+            <div class="form-row">
+                <label for="node-input-name" class="binsoul-shelly-pro-3em-label">
+                    <i class="fa fa-tag"></i>
+                    <span data-i18n="node-red:common.label.name"></span>
+                </label>
+                <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" class="binsoul-shelly-pro-3em-input" />
+            </div>
+        </fieldset>
+    </div>
+
+    <style>
+        .binsoul-shelly-pro-3em-wrapper {
+            width: 30rem;
+            min-width: 25rem;
+        }
+
+        .binsoul-shelly-pro-3em-input {
+            min-width: 100%;
+        }
+
+        .binsoul-shelly-pro-3em-label {
+            min-width: 100%;
+            font-weight: 700 !important;
+            font-size: calc(var(--red-ui-primary-font-size) - 1px) !important;
+            margin-bottom: 2px !important;
+        }
+    </style>
+</script>

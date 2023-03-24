@@ -1,0 +1,71 @@
+[
+    {
+        "id": "10487212391c5e40",
+        "type": "tab",
+        "label": "Shelly",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1caa3eec74308ff3",
+        "type": "binsoul-shelly-pro-3em",
+        "z": "10487212391c5e40",
+        "outputProperty": "payload",
+        "outputTarget": "msg",
+        "deviceIp": "192.168.178.35",
+        "name": "",
+        "x": 340,
+        "y": 80,
+        "wires": [
+            [
+                "fd2ff63efbd003dc"
+            ]
+        ]
+    },
+    {
+        "id": "c6d81f35e50ccb20",
+        "type": "inject",
+        "z": "10487212391c5e40",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "180",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 80,
+        "wires": [
+            [
+                "1caa3eec74308ff3"
+            ]
+        ]
+    },
+    {
+        "id": "fd2ff63efbd003dc",
+        "type": "debug",
+        "z": "10487212391c5e40",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 80,
+        "wires": []
+    }
+]
