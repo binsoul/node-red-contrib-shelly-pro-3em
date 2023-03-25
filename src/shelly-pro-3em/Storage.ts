@@ -1,5 +1,5 @@
 import { max, mean, min, sum } from 'simple-statistics';
-import type { NodeOutput, RangeValue } from './NodeOutput';
+import type { Counters, NodeOutput, Phase, PhaseData, RangeValue } from './NodeOutput';
 
 /**
  * Stores events and a history of past events.
@@ -11,8 +11,8 @@ export class Storage {
     private error: string | null = null;
     private recordCount = 0;
 
-    private counters: { [key: string]: number } | null = null;
-    private data: NodeOutput | null = null;
+    private counters: Counters | null = null;
+    private phaseData: PhaseData | null = null;
 
     private knownMeasurements: Map<string, string> = new Map([
         ['total_act_energy', 'actualEnergy'],
@@ -70,20 +70,20 @@ export class Storage {
     }
 
     public clear(): void {
-        this.data = null;
+        this.phaseData = null;
         this.counters = null;
         this.error = null;
         this.recordCount = 0;
     }
 
     public getData(): NodeOutput | null {
-        const result = Object.assign({}, this.data);
+        const result: NodeOutput = Object.assign({}, this.phaseData) as NodeOutput;
         result.counters = this.counters || {};
 
         return result;
     }
 
-    public setCounters(counters: { [key: string]: number }): void {
+    public setCounters(counters: Counters): void {
         this.counters = {};
 
         for (const [key, value] of Object.entries(counters)) {
@@ -98,14 +98,11 @@ export class Storage {
     public setRecords(keys: Array<string>, values: Array<Array<number>>): void {
         this.recordCount = values.length;
 
-        this.addExtraValues('a', 'act_power', keys, values);
         this.addExtraValues('a', 'aprt_power', keys, values);
-        this.addExtraValues('b', 'act_power', keys, values);
         this.addExtraValues('b', 'aprt_power', keys, values);
-        this.addExtraValues('c', 'act_power', keys, values);
         this.addExtraValues('c', 'aprt_power', keys, values);
 
-        const result: NodeOutput = { phaseA: {}, phaseB: {}, phaseC: {}, neutral: {}, counters: {} };
+        const result: PhaseData = { phaseA: {} as Phase, phaseB: {} as Phase, phaseC: {} as Phase, neutral: {} as Phase };
         for (let n = 0; n < keys.length; n++) {
             const data = [];
             for (let i = 0; i < values.length; i++) {
@@ -165,7 +162,11 @@ export class Storage {
             }
         }
 
-        this.data = result;
+        result.phaseA.actualPower.avg = this.round(((result.phaseA.actualEnergy.sum - result.phaseA.actualEnergyReturned.sum) * 60) / values.length, '4');
+        result.phaseB.actualPower.avg = this.round(((result.phaseB.actualEnergy.sum - result.phaseB.actualEnergyReturned.sum) * 60) / values.length, '4');
+        result.phaseC.actualPower.avg = this.round(((result.phaseC.actualEnergy.sum - result.phaseC.actualEnergyReturned.sum) * 60) / values.length, '4');
+
+        this.phaseData = result;
     }
 
     private getMeasurementCode(parts: string[]): string {
