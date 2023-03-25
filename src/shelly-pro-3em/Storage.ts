@@ -14,6 +14,25 @@ export class Storage {
     private counters: { [key: string]: number } | null = null;
     private data: NodeOutput | null = null;
 
+    private knownMeasurements: Map<string, string> = new Map([
+        ['total_act_energy', 'actualEnergy'],
+        ['fund_act_energy', 'fundamentalActualEnergy'],
+        ['total_act_ret_energy', 'actualEnergyReturned'],
+        ['fund_act_ret_energy', 'fundamentalActualEnergyReturned'],
+        ['lag_react_energy', 'laggingReactiveEnergy'],
+        ['lead_react_energy', 'leadingReactiveEnergy'],
+        ['act_power', 'actualPower'],
+        ['aprt_power', 'apparentPower'],
+        ['a_total_act_energy', 'actualEnergyPhaseA'],
+        ['a_total_act_ret_energy', 'actualEnergyReturnedPhaseA'],
+        ['b_total_act_energy', 'actualEnergyPhaseB'],
+        ['b_total_act_ret_energy', 'actualEnergyReturnedPhaseB'],
+        ['c_total_act_energy', 'actualEnergyPhaseC'],
+        ['c_total_act_ret_energy', 'actualEnergyReturnedPhaseC'],
+        ['total_act', 'actualEnergy'],
+        ['total_act_ret', 'actualEnergyReturned'],
+    ]);
+
     public isUpdating(): boolean {
         return this.updating;
     }
@@ -65,7 +84,15 @@ export class Storage {
     }
 
     public setCounters(counters: { [key: string]: number }): void {
-        this.counters = counters;
+        this.counters = {};
+
+        for (const [key, value] of Object.entries(counters)) {
+            if (this.knownMeasurements.has(key)) {
+                this.counters[this.knownMeasurements.get(key) as string] = value;
+            } else {
+                this.counters[key] = value;
+            }
+        }
     }
 
     public setRecords(keys: Array<string>, values: Array<Array<number>>): void {
@@ -78,61 +105,81 @@ export class Storage {
         this.addExtraValues('c', 'act_power', keys, values);
         this.addExtraValues('c', 'aprt_power', keys, values);
 
-        const result: NodeOutput = { a: {}, b: {}, c: {}, n: {}, counters: {} };
+        const result: NodeOutput = { phaseA: {}, phaseB: {}, phaseC: {}, neutral: {}, counters: {} };
         for (let n = 0; n < keys.length; n++) {
             const data = [];
             for (let i = 0; i < values.length; i++) {
                 data.push(values[i][n]);
             }
 
-            let value;
             const parts = keys[n].split('_');
-            const phase = parts.shift() as 'a' | 'b' | 'c' | 'n';
-            if (['a', 'b', 'c', 'n'].indexOf(phase) < 0) {
-                continue;
+            const prefix = parts.shift() as 'a' | 'b' | 'c' | 'n';
+
+            let phase;
+            if (prefix === 'n') {
+                phase = 'neutral';
+            } else {
+                phase = 'phase' + prefix.toUpperCase();
             }
 
+            let measurement = this.getMeasurementCode(parts);
             if (parts[0] === 'min') {
-                value = min(data);
                 parts.shift();
-                if (typeof result[phase][parts.join('_')] === 'undefined') {
-                    result[phase][parts.join('_')] = { min: 0, max: 0, avg: 0 };
+                measurement = this.getMeasurementCode(parts);
+                if (typeof result[phase][measurement] === 'undefined') {
+                    result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][parts.join('_')] as RangeValue;
-                rangeValue.min = value;
+                const rangeValue = result[phase][measurement] as RangeValue;
+                rangeValue.min = this.round(min(data), '4');
             } else if (parts[0] === 'max') {
-                value = max(data);
                 parts.shift();
-                if (typeof result[phase][parts.join('_')] === 'undefined') {
-                    result[phase][parts.join('_')] = { min: 0, max: 0, avg: 0 };
+                measurement = this.getMeasurementCode(parts);
+                if (typeof result[phase][measurement] === 'undefined') {
+                    result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][parts.join('_')] as RangeValue;
-                rangeValue.max = value;
+                const rangeValue = result[phase][measurement] as RangeValue;
+                rangeValue.max = this.round(max(data), '4');
             } else if (parts[0] === 'avg') {
-                value = this.round(mean(data), '4');
                 parts.shift();
-                if (typeof result[phase][parts.join('_')] === 'undefined') {
-                    result[phase][parts.join('_')] = { min: 0, max: 0, avg: 0 };
+                measurement = this.getMeasurementCode(parts);
+                if (typeof result[phase][measurement] === 'undefined') {
+                    result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][parts.join('_')] as RangeValue;
-                rangeValue.avg = value;
+                const rangeValue = result[phase][measurement] as RangeValue;
+                rangeValue.avg = this.round(mean(data), '4');
             } else if (parts[parts.length - 1] === 'energy') {
-                value = this.round(sum(data), '4');
-                result[phase][parts.join('_')] = value;
+                if (typeof result[phase][measurement] === 'undefined') {
+                    result[phase][measurement] = { min: 0, max: 0, avg: 0, sum: 0 };
+                }
+
+                const rangeValue = result[phase][measurement] as RangeValue;
+                rangeValue.min = this.round(min(data), '4');
+                rangeValue.max = this.round(max(data), '4');
+                rangeValue.avg = this.round(mean(data), '4');
+                rangeValue.sum = this.round(sum(data), '4');
             } else {
-                value = this.round(mean(data), '4');
-                result[phase][parts.join('_')] = value;
+                result[phase][measurement] = this.round(mean(data), '4');
             }
         }
 
         this.data = result;
     }
 
+    private getMeasurementCode(parts: string[]): string {
+        const result = parts.join('_');
+        if (this.knownMeasurements.has(result)) {
+            return this.knownMeasurements.get(result) as string;
+        }
+
+        return result;
+    }
+
     private addExtraValues(prefix: string, suffix: string, keys: Array<string>, values: Array<Array<number>>) {
         const index = keys.indexOf(prefix + '_avg_' + suffix);
+
         if (index <= 0) {
             const maxIndex = keys.indexOf(prefix + '_max_' + suffix);
             const minIndex = keys.indexOf(prefix + '_min_' + suffix);

@@ -2,6 +2,7 @@ interface RangeValue {
     min: number;
     max: number;
     avg: number;
+    sum?: number;
 }
 
 interface Phase {
@@ -13,9 +14,10 @@ interface Counters {
 }
 
 export interface NodeOutput {
-    a: Phase;
-    b: Phase;
-    c: Phase;
-    n: Phase;
+    [key: string]: Phase;
+    phaseA: Phase;
+    phaseB: Phase;
+    phaseC: Phase;
+    neutral: Phase;
     counters: Counters;
 }
