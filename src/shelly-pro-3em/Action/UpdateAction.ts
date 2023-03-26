@@ -89,10 +89,12 @@ export class UpdateAction implements Action {
                     currentTimestamp = data.next_record_ts || 0;
                 }
 
-                if (keys !== null) {
-                    this.storage.setRecords(keys, values);
-                } else {
+                if (keys === null) {
                     this.storage.setError('No keys found in response.');
+                } else if (values.length === 0) {
+                    this.storage.setError('No values found in response.');
+                } else {
+                    this.storage.setRecords(keys, values);
                 }
             } catch (e) {
                 if (e instanceof Error) {
