@@ -12,7 +12,10 @@ const nodeInitializer: NodeInitializer = (RED): void => {
         const actionFactory = new ActionFactory(RED, this, configuration);
         const messageHandler = new MessageHandler(RED, this, actionFactory);
 
+        actionFactory.setup();
+
         this.on('input', (msg, send, done) => messageHandler.handle(msg, send, done));
+        this.on('close', () => actionFactory.teardown());
     }
 
     RED.nodes.registerType('binsoul-shelly-pro-3em', NodeConstructor);

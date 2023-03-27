@@ -2,11 +2,19 @@
     "binsoul-shelly-pro-3em": {
         "label": {
             "output": "Output",
-            "deviceIp": "Device IP"
+            "deviceIp": "Device IP",
+            "updateMode": "Update automatically",
+            "updateFrequency": "Number of minutes between updates"
         },
         "help": {
             "output": "",
             "deviceIp": ""
+        },
+        "option": {
+            "updateMode": {
+                "never": "Never",
+                "messages": "If no messages are received"
+            }
         }
     }
 }

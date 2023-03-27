@@ -21,6 +21,15 @@ RED.nodes.registerType<NodeEditorProperties>('binsoul-shelly-pro-3em', {
             value: '192.168.33.1',
             required: true,
         },
+        updateMode: {
+            value: 'never',
+            required: true,
+        },
+        updateFrequency: {
+            value: 5,
+            required: true,
+            validate: RED.validators.number(),
+        },
         name: { value: '' },
     },
     inputs: 1,

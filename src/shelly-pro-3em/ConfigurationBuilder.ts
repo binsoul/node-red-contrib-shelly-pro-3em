@@ -19,6 +19,8 @@ export function buildConfiguration(config: UserConfiguration): Configuration {
     const outputTarget = getString(config.outputTarget, 'msg');
     const outputProperty = getString(config.outputProperty, 'payload');
     const deviceIp = getString(config.deviceIp, '192.168.33.1');
+    const updateMode = getString(config.updateMode, 'never');
+    const updateFrequency = Number(config.updateFrequency || 5);
 
-    return new Configuration(outputTarget, outputProperty, deviceIp);
+    return new Configuration(outputTarget, outputProperty, deviceIp, updateMode, updateFrequency);
 }

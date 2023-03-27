@@ -7,6 +7,8 @@ export interface UserConfigurationOptions {
     outputTarget?: string;
     outputProperty?: string;
     deviceIp?: string;
+    updateMode?: string;
+    updateFrequency?: number;
 }
 
 /**

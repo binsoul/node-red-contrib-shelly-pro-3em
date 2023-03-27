@@ -1,6 +1,7 @@
 import { Action, ActionFactory as ActionFactoryInterface, Message } from '@binsoul/node-red-bundle-processing';
 import type { Node, NodeAPI } from '@node-red/registry';
 import { NodeMessageInFlow } from 'node-red';
+import { clearTimeout, setTimeout } from 'timers';
 import { OutputAction } from './Action/OutputAction';
 import { UpdateAction } from './Action/UpdateAction';
 import type { Configuration } from './Configuration';
@@ -11,6 +12,12 @@ interface MessageData extends NodeMessageInFlow {
     timestamp?: number;
 }
 
+function formatTime(timestamp: number) {
+    const date = new Date(timestamp);
+
+    return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+}
+
 /**
  * Generates actions.
  */
@@ -19,6 +26,7 @@ export class ActionFactory implements ActionFactoryInterface {
     private readonly RED: NodeAPI;
     private readonly node: Node;
     private readonly storage: Storage;
+    private updateTimer: NodeJS.Timeout | null = null;
 
     constructor(RED: NodeAPI, node: Node, configuration: Configuration) {
         this.RED = RED;
@@ -33,12 +41,27 @@ export class ActionFactory implements ActionFactoryInterface {
 
         if (typeof command !== 'undefined' && ('' + command).trim() !== '') {
             switch (command.toLowerCase()) {
+                case 'update':
+                    this.storage.setUpdating(true);
+                    return new UpdateAction(this.configuration, this.storage, () => {
+                        this.node.receive(<MessageData>{
+                            command: 'output',
+                        });
+                    });
                 case 'output':
+                    this.storage.setUpdating(false);
                     return new OutputAction(this.configuration, this.storage);
             }
         }
 
         if (!this.storage.isUpdating()) {
+            if (this.updateTimer !== null) {
+                clearTimeout(this.updateTimer);
+                this.updateTimer = null;
+            }
+
+            this.scheduleUpdate();
+
             this.storage.setUpdating(true);
             return new UpdateAction(this.configuration, this.storage, () => {
                 this.node.receive(<MessageData>{
@@ -48,5 +71,67 @@ export class ActionFactory implements ActionFactoryInterface {
         }
 
         return null;
+    }
+
+    setup(): void {
+        if (this.configuration.updateMode === 'never') {
+            this.node.status({
+                fill: 'yellow',
+                shape: 'dot',
+                text: 'waiting for message',
+            });
+
+            return;
+        }
+
+        const now = new Date().getTime();
+        const firstUpdateAt = Math.ceil(now / (this.configuration.updateFrequency * 60000)) * this.configuration.updateFrequency * 60000;
+        this.updateTimer = setTimeout(() => this.executeUpdate(), firstUpdateAt - now + 1000);
+
+        this.storage.setToTimestamp((firstUpdateAt - this.configuration.updateFrequency * 60000) / 1000);
+
+        this.node.status({
+            fill: 'yellow',
+            shape: 'dot',
+            text: `waiting until ${formatTime(firstUpdateAt)}`,
+        });
+    }
+
+    teardown(): void {
+        if (this.updateTimer !== null) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = null;
+        }
+    }
+
+    /**
+     * Starts a timer if automatic updates are enabled and no timer exists.
+     */
+    private scheduleUpdate(): void {
+        if (this.updateTimer !== null || this.configuration.updateMode === 'never') {
+            return;
+        }
+
+        const now = new Date().getTime();
+        this.updateTimer = setTimeout(() => this.executeUpdate(), this.getStartOfSlot(now) - now + this.configuration.updateFrequency * 60000 + 1000);
+    }
+
+    /**
+     * Handles automatic updates.
+     */
+    executeUpdate(): void {
+        const now = new Date().getTime();
+        const nextUpdateAt = this.getStartOfSlot(now) + this.configuration.updateFrequency * 60000 + 1000;
+        this.updateTimer = setTimeout(() => this.executeUpdate(), nextUpdateAt - now);
+
+        // trigger node.on('input', () => {})
+        this.node.receive(<MessageData>{
+            command: 'update',
+            timestamp: now,
+        });
+    }
+
+    private getStartOfSlot(timestamp: number) {
+        return Math.floor(timestamp / 60000) * 60000;
     }
 }
