@@ -4,8 +4,8 @@
     "description": "Retrieves data from a Shelly Pro 3EM device.",
     "keywords": [
         "node-red",
-        "string",
-        "extract"
+        "device",
+        "Shelly Pro 3EM"
     ],
     "author": {
         "name": "Sebastian Mößler",
