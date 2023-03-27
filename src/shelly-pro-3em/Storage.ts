@@ -1,5 +1,5 @@
 import { max, mean, min, sum } from 'simple-statistics';
-import type { Counters, NodeOutput, Phase, PhaseData, RangeValue } from './NodeOutput';
+import type { Counters, NodeOutput, Phase, PhaseData, ValueWithBounds, ValueWithBoundsAndSum } from './NodeOutput';
 
 /**
  * Stores events and a history of past events.
@@ -77,7 +77,18 @@ export class Storage {
     }
 
     public getData(): NodeOutput | null {
+        if (this.phaseData === null) {
+            return null;
+        }
+
         const result: NodeOutput = Object.assign({}, this.phaseData) as NodeOutput;
+
+        result.totals = {};
+        result.totals.actualEnergy = this.round(sum([this.phaseData.phaseA.actualEnergy.sum, this.phaseData.phaseB.actualEnergy.sum, this.phaseData.phaseC.actualEnergy.sum]), '4');
+        result.totals.actualEnergyReturned = this.round(sum([this.phaseData.phaseA.actualEnergyReturned.sum, this.phaseData.phaseB.actualEnergyReturned.sum, this.phaseData.phaseC.actualEnergyReturned.sum]), '4');
+        result.totals.actualPower = this.round((result.totals.actualEnergy * 60) / this.recordCount, '4');
+        result.totals.actualPowerReturned = this.round((result.totals.actualEnergyReturned * 60) / this.recordCount, '4');
+
         result.counters = this.counters || {};
 
         return result;
@@ -127,7 +138,7 @@ export class Storage {
                     result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][measurement] as RangeValue;
+                const rangeValue = result[phase][measurement] as ValueWithBounds;
                 rangeValue.min = this.round(min(data), '4');
             } else if (parts[0] === 'max') {
                 parts.shift();
@@ -136,7 +147,7 @@ export class Storage {
                     result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][measurement] as RangeValue;
+                const rangeValue = result[phase][measurement] as ValueWithBounds;
                 rangeValue.max = this.round(max(data), '4');
             } else if (parts[0] === 'avg') {
                 parts.shift();
@@ -145,14 +156,14 @@ export class Storage {
                     result[phase][measurement] = { min: 0, max: 0, avg: 0 };
                 }
 
-                const rangeValue = result[phase][measurement] as RangeValue;
+                const rangeValue = result[phase][measurement] as ValueWithBounds;
                 rangeValue.avg = this.round(mean(data), '4');
             } else if (parts[parts.length - 1] === 'energy') {
                 if (typeof result[phase][measurement] === 'undefined') {
-                    result[phase][measurement] = { min: 0, max: 0, avg: 0, sum: 0 };
+                    result[phase][measurement] = { min: 0, max: 0, avg: 0, sum: 0 } as ValueWithBoundsAndSum;
                 }
 
-                const rangeValue = result[phase][measurement] as RangeValue;
+                const rangeValue = result[phase][measurement] as ValueWithBoundsAndSum;
                 rangeValue.min = this.round(min(data), '4');
                 rangeValue.max = this.round(max(data), '4');
                 rangeValue.avg = this.round(mean(data), '4');

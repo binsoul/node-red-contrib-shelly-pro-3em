@@ -1,23 +1,18 @@
-interface RangeValue {
+interface ValueWithBounds {
     min: number;
     max: number;
     avg: number;
-    sum?: number;
 }
 
-interface RangeValueWithSum extends RangeValue {
+interface ValueWithBoundsAndSum extends ValueWithBounds {
     sum: number;
 }
 
 interface Phase {
-    [key: string]: number | RangeValue;
-    actualPower: RangeValue;
-    actualEnergy: RangeValueWithSum;
-    actualEnergyReturned: RangeValueWithSum;
-}
-
-interface Counters {
-    [key: string]: number;
+    [key: string]: number | ValueWithBounds;
+    actualPower: ValueWithBounds;
+    actualEnergy: ValueWithBoundsAndSum;
+    actualEnergyReturned: ValueWithBoundsAndSum;
 }
 
 interface PhaseData {
@@ -28,6 +23,15 @@ interface PhaseData {
     neutral: Phase;
 }
 
+interface Totals {
+    [key: string]: number;
+}
+
+interface Counters {
+    [key: string]: number;
+}
+
 export interface NodeOutput extends PhaseData {
+    totals: Totals;
     counters: Counters;
 }
