@@ -1,6 +1,6 @@
 {
     "name": "@binsoul/node-red-contrib-shelly-pro-3em",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Retrieves data from a Shelly Pro 3EM device.",
     "keywords": [
         "node-red",
