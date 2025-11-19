@@ -1,5 +1,5 @@
 import { Action, InputDefinition, Output, OutputDefinition } from '@binsoul/node-red-bundle-processing';
-import { Input } from '@binsoul/node-red-bundle-processing/dist/Input';
+import { Input } from '@binsoul/node-red-bundle-processing';
 import got from 'got';
 import type { Configuration } from '../Configuration';
 import { Storage } from '../Storage';
