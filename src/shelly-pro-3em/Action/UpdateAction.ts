@@ -1,6 +1,6 @@
 import { Action, InputDefinition, Output, OutputDefinition } from '@binsoul/node-red-bundle-processing';
 import { Input } from '@binsoul/node-red-bundle-processing';
-import got from 'got';
+import * as http from 'http';
 import type { Configuration } from '../Configuration';
 import { Storage } from '../Storage';
 
@@ -54,8 +54,7 @@ export class UpdateAction implements Action {
             let currentTimestamp = fromTimestamp;
 
             try {
-                const response = await got('http://' + this.configuration.deviceIp + '/rpc/EMData.GetStatus?id=0', { responseType: 'json' });
-                const data = response.body as GetStatusResult;
+                const data = await this.fetchJson<GetStatusResult>('http://' + this.configuration.deviceIp + '/rpc/EMData.GetStatus?id=0');
                 delete data.id;
                 this.storage.setCounters(data);
 
@@ -63,8 +62,7 @@ export class UpdateAction implements Action {
                 const values: Array<Array<number>> = [];
 
                 while (currentTimestamp) {
-                    const response = await got('http://' + this.configuration.deviceIp + '/rpc/EMdata.GetData?id=0&ts=' + currentTimestamp + '&end_ts=' + toTimestamp, { responseType: 'json' });
-                    const data = response.body as GetDataResult;
+                    const data = await this.fetchJson<GetDataResult>('http://' + this.configuration.deviceIp + '/rpc/EMdata.GetData?id=0&ts=' + currentTimestamp + '&end_ts=' + toTimestamp);
                     if (keys === null) {
                         keys = data.keys;
                     }
@@ -112,5 +110,40 @@ export class UpdateAction implements Action {
         })();
 
         return new Output();
+    }
+
+    private async fetchJson<T>(url: string): Promise<T> {
+        return new Promise((resolve, reject) => {
+            http.get(url, (res) => {
+                let data = '';
+
+                if (res.statusCode !== 200) {
+                    reject(new Error(`HTTP Error: ${res.statusCode}`));
+                    return;
+                }
+
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        resolve(parsed);
+                    } catch (e) {
+                        let message = 'An unknown error occurred.';
+                        if (typeof e === 'string') {
+                            message = e;
+                        } else if (e instanceof Error) {
+                            message = e.message;
+                        }
+
+                        reject(new Error(`Failed to parse JSON response: ${message}`));
+                    }
+                });
+            }).on('error', (err) => {
+                reject(err);
+            });
+        });
     }
 }

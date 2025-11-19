@@ -1,6 +1,6 @@
 {
     "name": "@binsoul/node-red-contrib-shelly-pro-3em",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Retrieves data from a Shelly Pro 3EM device.",
     "keywords": [
         "node-red",
@@ -76,7 +76,6 @@
     },
     "dependencies": {
         "@binsoul/node-red-bundle-processing": "^0.1.0",
-        "got": "^11.8.6",
         "simple-statistics": "^7.8.8"
     },
     "engines": {
