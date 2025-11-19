@@ -1,5 +1,5 @@
 import { max, mean, min, sum } from 'simple-statistics';
-import type { Counters, NodeOutput, Phase, PhaseData, ValueWithBounds, ValueWithBoundsAndSum } from './NodeOutput';
+import type { Counters, NodeOutput, Phase, PhaseData, ValueWithBounds, ValueWithBoundsAndSum } from './NodeOutput.js';
 
 /**
  * Stores events and a history of past events.

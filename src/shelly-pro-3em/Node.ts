@@ -1,8 +1,8 @@
 import { MessageHandler } from '@binsoul/node-red-bundle-processing';
 import type { Node, NodeInitializer } from 'node-red';
-import { ActionFactory } from './ActionFactory';
-import { buildConfiguration } from './ConfigurationBuilder';
-import type { UserConfiguration } from './UserConfiguration';
+import { ActionFactory } from './ActionFactory.js';
+import { buildConfiguration } from './ConfigurationBuilder.js';
+import type { UserConfiguration } from './UserConfiguration.js';
 
 const nodeInitializer: NodeInitializer = (RED): void => {
     function NodeConstructor(this: Node, userConfiguration: UserConfiguration): void {

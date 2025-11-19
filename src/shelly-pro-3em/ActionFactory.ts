@@ -2,10 +2,10 @@ import { Action, ActionFactory as ActionFactoryInterface, Message } from '@binso
 import type { Node, NodeAPI } from '@node-red/registry';
 import { NodeMessageInFlow } from 'node-red';
 import { clearTimeout, setTimeout } from 'timers';
-import { OutputAction } from './Action/OutputAction';
-import { UpdateAction } from './Action/UpdateAction';
-import type { Configuration } from './Configuration';
-import { Storage } from './Storage';
+import { OutputAction } from './Action/OutputAction.js';
+import { UpdateAction } from './Action/UpdateAction.js';
+import type { Configuration } from './Configuration.js';
+import { Storage } from './Storage.js';
 
 interface MessageData extends NodeMessageInFlow {
     command?: string;

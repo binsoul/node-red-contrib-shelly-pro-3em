@@ -1,8 +1,8 @@
 import { Action, InputDefinition, Output, OutputDefinition } from '@binsoul/node-red-bundle-processing';
 import { Input } from '@binsoul/node-red-bundle-processing';
 import * as http from 'http';
-import type { Configuration } from '../Configuration';
-import { Storage } from '../Storage';
+import type { Configuration } from '../Configuration.js';
+import { Storage } from '../Storage.js';
 
 interface GetStatusResult {
     [key: string]: number;

@@ -1,6 +1,6 @@
 import { Action, InputDefinition, Output, OutputDefinition } from '@binsoul/node-red-bundle-processing';
-import type { Configuration } from '../Configuration';
-import { Storage } from '../Storage';
+import type { Configuration } from '../Configuration.js';
+import { Storage } from '../Storage.js';
 
 function formatTime(timestamp: number) {
     const date = new Date(timestamp);
